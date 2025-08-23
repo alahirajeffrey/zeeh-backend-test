@@ -11,5 +11,65 @@ model User {
   id            String      @id @default(uuid())
   email         String      @unique
   password      String
+  role          String      
+  createdAt     DateTime    @default(now())
+
+  reports       Report[] 
+  insights      Insight[] 
+  statement     Statement[]
+}
+
+model Statement {
+  id              String              @id @default(uuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id])   
+  fileName        String
+  uploadedAt      DateTime            @default(now())
+  createdAt       DateTime    @default(now())
+
+  transactions    Transaction[]
+}
+
+model Insight {
+  id                    String              @id @default(uuid())
+  userId                String
+  user                  User     @relation(fields: [userId], references: [id])   
+  averageIncome         Int
+  inflow                Int
+  outFlow               Int
+  netIncome             Int
+  spendBuckets          Int?
+  riskFlags             Int?
+  parsingSuccessRate    Int?
+  createdAt             DateTime    @default(now())
+}
+
+model Transaction {
+  id          String    @id @default(uuid())
+  statementId String
+  date        DateTime
+  isInflow    Boolean
+  description String
+  amount      Decimal    @db.Decimal(19, 2) 
+  balance     Decimal?   @db.Decimal(19, 2)
+  category    String?
+
+  statement   Statement  @relation(fields: [statementId], references: [id])
+  @@index([statementId, date])
+
+  createdAt     DateTime    @default(now())
+}
+
+model Report {
+  id          String    @id @default(uuid())
+  userId      String   
+  score       Int
+  riskBand    String
+  enquiries6m Int
+  defaults    Int
+  openLoans   Int
+  tradelines  Json
+
+  user        User     @relation(fields: [userId], references: [id])
   createdAt     DateTime    @default(now())
 }
