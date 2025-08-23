@@ -1,6 +1,18 @@
 version: '3.8'
 
 services:
+  app:
+    build: .
+    container_name: zeeh-backend
+    restart: unless-stopped
+    ports:
+      - '3000:3000'
+    environment:
+      .env_file: .env
+    depends_on:
+      - mysql
+    command: sh -c "npx prisma migrate deploy && npm run start:prod"
+
   mysql:
     image: mysql:8.0
     container_name: zeeh-mysql
