@@ -4,11 +4,15 @@ import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { HttpExceptionFilter } from './common';
 import { AppModule } from './app.module';
+import helmet from 'helmet';
 
 dotenv.config();
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
+
+  // setup helmet
+  app.use(helmet());
 
   // setup global http exception filter
   app.useGlobalFilters(new HttpExceptionFilter());
