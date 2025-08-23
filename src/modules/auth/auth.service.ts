@@ -1,4 +1,5 @@
 import {
+  ConflictException,
   Injectable,
   NotFoundException,
   UnauthorizedException,
@@ -7,7 +8,7 @@ import { JwtService } from '@nestjs/jwt';
 import * as bcrypt from 'bcrypt';
 import { PrismaService } from 'src/prisma.service';
 import { AuthDto, ChangePasswordDto } from './auth.dto';
-import { ApiResponse, config } from 'src/common';
+import { ApiResponse, config, Role } from 'src/common';
 
 @Injectable()
 export class AuthService {
@@ -24,7 +25,7 @@ export class AuthService {
       },
     });
     if (existingUser) {
-      throw new UnauthorizedException('User already exists');
+      throw new ConflictException('User already exists');
     }
 
     // create new user
@@ -32,7 +33,7 @@ export class AuthService {
       data: {
         email: dto.email,
         password: await bcrypt.hash(dto.password, 12),
-        role: 'USER',
+        role: Role.User,
       },
     });
 
@@ -53,12 +54,9 @@ export class AuthService {
     }
 
     // verify user password
-    const isPasswordValid = await bcrypt.compare(
-      dto.password,
-      user.password,
-    );
+    const isPasswordValid = await bcrypt.compare(dto.password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password');
+      throw new UnauthorizedException('Incorrect password');
     }
 
     // create and sign access token
@@ -79,7 +77,10 @@ export class AuthService {
     };
   }
 
-  async changePassword(userId: string, dto: ChangePasswordDto): Promise<ApiResponse> {
+  async changePassword(
+    userId: string,
+    dto: ChangePasswordDto,
+  ): Promise<ApiResponse> {
     // check if user exists
     const user = await this.prismaService.user.findUnique({
       where: {
@@ -96,20 +97,20 @@ export class AuthService {
       user.password,
     );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid password');
+      throw new UnauthorizedException('Incorrect password');
     }
 
     // hash and save new password
-    const newPasswordHash = await bcrypt.hash(dto.newPassword, 12),
+    const newPasswordHash = await bcrypt.hash(dto.newPassword, 12);
     await this.prismaService.user.update({
       where: {
         id: user.id,
       },
-      data: {password: newPasswordHash},
+      data: { password: newPasswordHash },
     });
 
     return {
-        message:"Password changed successfully"
-    }
+      message: 'Password changed successfully',
+    };
   }
 }
