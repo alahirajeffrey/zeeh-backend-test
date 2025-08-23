@@ -3,7 +3,7 @@ import { DocumentBuilder, SwaggerModule } from '@nestjs/swagger';
 import { ValidationPipe } from '@nestjs/common';
 import * as dotenv from 'dotenv';
 import { HttpExceptionFilter } from './common';
-import { AppModule } from './modules';
+import { AppModule } from './app.module';
 
 dotenv.config();
 
@@ -26,27 +26,30 @@ async function bootstrap() {
   // setup cors
   app.enableCors();
 
-  // setup swagger
-  const config = new DocumentBuilder()
-    .setTitle('Zeeh API')
-    .setDescription('Zeeh API description')
-    .setVersion('1.0')
-    .addBearerAuth(
-      {
-        type: 'http',
-        scheme: 'bearer',
-        bearerFormat: 'JWT',
-        name: 'JWT',
-        description: 'Enter JWT token',
-        in: 'header',
-      },
-      'JWT-auth',
-    )
-    .build();
+  if (process.env.NODE_ENV !== 'production') {
+    // setup swagger
+    const config = new DocumentBuilder()
+      .setTitle('Zeeh API')
+      .setDescription('Zeeh API description')
+      .setVersion('1.0')
+      .addBearerAuth(
+        {
+          type: 'http',
+          scheme: 'bearer',
+          bearerFormat: 'JWT',
+          name: 'JWT',
+          description: 'Enter JWT token',
+          in: 'header',
+        },
+        'JWT-auth',
+      )
+      .build();
 
-  const document = SwaggerModule.createDocument(app, config);
-  SwaggerModule.setup('api/v1/doc', app, document);
+    const document = SwaggerModule.createDocument(app, config);
+    SwaggerModule.setup('api/v1/doc', app, document);
+  }
 
   await app.listen(Number(process.env.NODE_PORT) || 3000);
 }
+
 bootstrap();
