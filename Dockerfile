@@ -1,29 +1,32 @@
-# Build stage
 FROM node:22-alpine AS builder
-
-WORKDIR /zeeh
+WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci
 
 COPY tsconfig.json ./
 COPY src ./src
+COPY .env ./.env
+COPY prisma ./prisma
 
-RUN npm run start:dev
+RUN npx prisma generate 
+RUN npm run build
 
 # Production stage
 FROM node:22-alpine
-
-WORKDIR /zeeh
+WORKDIR /app
 
 COPY package*.json ./
 RUN npm ci --only=production
 
-COPY --from=builder /zeeh/dist ./dist
+COPY --from=builder /app/dist ./dist
+COPY --from=builder /app/prisma ./prisma
+COPY --from=builder /app/.env ./.env
 
-ENV NODE_ENV=production
-ENV PORT=3000
+# 👇 generate Prisma client in the runtime image
+RUN npx prisma generate
 
-EXPOSE 3000
+COPY docker-entrypoint.sh ./docker-entrypoint.sh
+RUN chmod +x ./docker-entrypoint.sh
 
-CMD npx prisma migrate deploy && npm run start:prod
+ENTRYPOINT ["./docker-entrypoint.sh"]
