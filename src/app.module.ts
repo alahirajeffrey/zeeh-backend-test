@@ -3,6 +3,7 @@ import { ThrottlerGuard, ThrottlerModule } from '@nestjs/throttler';
 import { APP_GUARD } from '@nestjs/core';
 import {
   AuthModule,
+  BureauModule,
   HealthModule,
   InsightsModule,
   MetricsModule,
@@ -17,6 +18,7 @@ import { ConfigModule } from '@nestjs/config';
     InsightsModule,
     HealthModule,
     MetricsModule,
+    BureauModule,
     ConfigModule.forRoot({ isGlobal: true }),
     // rate limiter i.e 10 requests every 60 seconds
     ThrottlerModule.forRoot([
