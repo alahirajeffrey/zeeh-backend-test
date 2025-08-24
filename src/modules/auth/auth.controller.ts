@@ -11,6 +11,8 @@ import { AuthService } from './auth.service';
 import { ApiOperation, ApiSecurity, ApiTags } from '@nestjs/swagger';
 import { AuthDto, ChangePasswordDto } from './auth.dto';
 import { JwtGuard } from './guards';
+import { RolesGuard } from './guards/roles.guard';
+import { Roles, Role } from 'src/common';
 
 @Controller('auth')
 @ApiTags('auth-endpoints')
@@ -36,5 +38,14 @@ export class AuthController {
   @ApiOperation({ summary: 'Change user password' })
   async changePassword(@Body() dto: ChangePasswordDto, @Req() req) {
     return this.authService.changePassword(req.user.userId, dto);
+  }
+
+  @UseGuards(JwtGuard, RolesGuard)
+  @Roles(Role.Admin)
+  @ApiSecurity('JWT-auth')
+  @Post('/admin/register')
+  @ApiOperation({ summary: 'Admin register a new user' })
+  async adminRegisterUser(@Body() dto: AuthDto) {
+    return this.authService.registerUser(dto);
   }
 }
