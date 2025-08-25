@@ -15,7 +15,7 @@ import { RolesGuard } from './guards/roles.guard';
 import { Roles, Role } from 'src/common';
 
 @Controller('auth')
-@ApiTags('auth-endpoints')
+@ApiTags('auth')
 export class AuthController {
   constructor(private readonly authService: AuthService) {}
 
