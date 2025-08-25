@@ -60,3 +60,4 @@ date,description,amount,balance
   - runs in Docker with Docker Compose.
   - services: `app` (NestJS backend) + `mysql` (database).
   - optional monitoring and observability stack: Prometheus, Grafana, Node-exporter.
+  - optionally setup a reverse proxy using nginx and setup a cache using redis
