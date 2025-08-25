@@ -58,8 +58,8 @@ export class InsightsService {
 
     // risk flags
     let riskFlags = 0;
-    // add risk flag when expenditure is greater than average income
     transactions.map((transaction) => {
+      // add risk flag when expenditure is greater than average income
       if (
         !transaction.isInflow &&
         Math.abs(transaction.amount.toNumber()) > Number(avgIncome)
