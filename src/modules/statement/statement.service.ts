@@ -36,29 +36,33 @@ export class StatementService {
         });
     });
 
-    // save statement and transactions to the database
-    const statementDetails = await this.prismaService.statement.create({
-      data: {
-        userId,
-        fileName: file.originalname,
-      },
-    });
-
-    for (const row of records) {
-      const { date, description, amount, balance } = row;
-
-      await this.prismaService.transaction.create({
+    // run queries in prisma transaction
+    await this.prismaService.$transaction(async (tx) => {
+      // save statement details
+      const statementDetails = await tx.statement.create({
         data: {
-          statementId: statementDetails.id,
-          date: new Date(date),
-          description,
-          amount: parseFloat(amount),
-          balance: parseFloat(balance),
-          // remove later
-          isInflow: amount > 0 ? true : false,
+          userId,
+          fileName: file.originalname,
         },
       });
-    }
+
+      // create transactions
+      for (const row of records) {
+        const { date, description, amount, balance } = row;
+
+        await tx.transaction.create({
+          data: {
+            statementId: statementDetails.id,
+            date: new Date(date),
+            description,
+            amount: parseFloat(amount),
+            balance: parseFloat(balance),
+            isInflow: parseFloat(amount) > 0,
+          },
+        });
+      }
+    });
+
     return {
       message: 'Statement uploaded successfully!',
     };
