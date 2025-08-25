@@ -1,6 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios, { AxiosRequestConfig } from 'axios';
-import { config } from 'src/common';
+import { config, CreditReportData } from 'src/common';
 import { PrismaService } from 'src/prisma.service';
 
 @Injectable()
@@ -16,10 +16,11 @@ export class BureauService {
   ): Promise<T> {
     try {
       const response = await axios<T>(url, options);
-      if (response.status in [400, 429, 500, 502, 503]) {
-        console.log(response.status);
-        return response.data;
+
+      if ([400, 429, 500, 502, 503, 504].includes(response.status)) {
+        throw new Error(`Retryable error: ${response.status}`);
       }
+
       return response.data;
     } catch (error: any) {
       const status = error.response?.status;
@@ -43,7 +44,7 @@ export class BureauService {
   }
 
   // generate fallback random credit data
-  private generateRandomCreditData() {
+  private generateRandomCreditData(): CreditReportData {
     return {
       score: Math.floor(Math.random() * (850 - 300 + 1)) + 300,
       risk_band: ['LOW', 'MEDIUM', 'HIGH'][Math.floor(Math.random() * 3)],
@@ -64,20 +65,12 @@ export class BureauService {
     };
   }
 
-  //  check credit info for a user
-  async checkCredit(userId: string) {
-    let data: {
-      score: number;
-      risk_band: string;
-      enquiries_6m: number;
-      defaults: number;
-      open_loans: number;
-      trade_lines: any[];
-    };
+  // check credit info for a user
+  async checkCredit(userId: string): Promise<CreditReportData> {
+    let data: CreditReportData;
 
     try {
-      // Try calling the mock API
-      data = await this.callCreditBureauApi<typeof data>(
+      data = await this.callCreditBureauApi<CreditReportData>(
         'https://mock-bureau.test/v1/credit/check',
         {
           method: 'POST',
@@ -88,20 +81,6 @@ export class BureauService {
           data: { userId },
         },
       );
-
-      if (data) {
-        await this.prismaService.report.create({
-          data: {
-            userId,
-            score: data.score,
-            riskBand: data.risk_band,
-            enquiries6m: data.enquiries_6m,
-            defaults: data.defaults,
-            openLoans: data.open_loans,
-            tradelines: JSON.stringify(data.trade_lines),
-          },
-        });
-      }
     } catch (error) {
       console.warn(
         'Mock bureau API unavailable, using fallback.',
@@ -110,7 +89,7 @@ export class BureauService {
       data = this.generateRandomCreditData();
     }
 
-    // save result
+    // save result once
     await this.prismaService.report.create({
       data: {
         userId,
