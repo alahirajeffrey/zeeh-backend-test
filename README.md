@@ -23,7 +23,7 @@ Backend task to build a mini credit insight service that
 - run the command `docker-compose up --build -d` to setup docker compose
 - run the command `docker ps` to verify the containers are running
 - visit `http://localhost:3000/api/v1/doc` to visit the swagger doc
-- visit `localhost:3000/api/v1/statements/upload` to upload statements
+- visit `localhost:3000/api/v1/statements/upload` to upload statements. you can pass a file in the form-data section under body with key `file`
 - visit `http://localhost:3000/api/v1/metrics` to view system metrics
 
 ### Example CSV format
