@@ -20,9 +20,10 @@ Backend task to build a mini credit insight service that
 - clone repo by running the command `git clone https://github.com/alahirajeffrey/zeeh-backend-test.git`
 - navigate to cloned repo in your terminal i.e. `cd zeeh-backend-test.git`
 - create a .env file using the .env.example file as a sample
-- run the command `docker-compose up --build` to setup docker compose
+- run the command `docker-compose up --build -d` to setup docker compose
 - run the command `docker ps` to verify the containers are running
 - visit `http://localhost:3000/api/v1/doc` to visit the swagger doc
+- visit `localhost:3000/api/v1/statements/upload` to upload statements
 - visit `http://localhost:3000/api/v1/metrics` to view system metrics
 
 ### Example CSV format
